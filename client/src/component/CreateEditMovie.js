@@ -1,6 +1,6 @@
-import React, { Component } from 'react';
+import React, {Component} from 'react';
 import axios from 'axios';
-import { withRouter } from 'react-router-dom';
+import {withRouter} from 'react-router-dom';
 
 class CreateEditMovie extends Component {
   constructor(props) {
@@ -10,11 +10,13 @@ class CreateEditMovie extends Component {
       name: props.name || '',
       genre: props.genre || '',
       rating: props.rating || '',
-      explicit: props.explicit || false
+      explicit: props.explicit || false,
+      error: null
     };
 
     this.onChangeItem = this.onChangeItem.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
+    this.onError = this.onError.bind(this);
   }
 
   onChangeItem(event) {
@@ -26,10 +28,16 @@ class CreateEditMovie extends Component {
     });
   }
 
+  onError(error) {
+    this.setState({
+      error: error
+    });
+  }
+
   handleSubmit(event) {
     event.preventDefault();
-    const { name, genre, rating, explicit } = this.state;
-    const { id, history } = this.props;
+    const {name, genre, rating, explicit} = this.state;
+    const {id, history} = this.props;
     //We're editing
     if (id) {
       axios
@@ -42,7 +50,10 @@ class CreateEditMovie extends Component {
         .then(() => {
           this.props.updateState(name, genre, rating, explicit);
           this.props.toggleEdit();
-        });
+        }).catch((error) => {
+        console.log(error.response.data);
+        this.setState({error: error.response.data})
+      });
     } else {
       //we're not
       axios
@@ -54,14 +65,18 @@ class CreateEditMovie extends Component {
         })
         .then(() => {
           history.push('/');
-        });
+        }).catch((error) => {
+        console.log(error.response.data);
+        this.setState({error: error.response.data})
+      });
     }
   }
 
   render() {
-    const { name, genre, rating, explicit } = this.state;
+    const {name, genre, rating, explicit, error} = this.state;
     return (
       <form onSubmit={this.handleSubmit}>
+        {error && <div className="alert alert-danger">{error}</div>}
         <div className="form-group">
           <label htmlFor="name">Title of the movie</label>
           <input
@@ -100,7 +115,6 @@ class CreateEditMovie extends Component {
           <label htmlFor="explicit">Is this movie explicit</label>
           <select
             name="explicit"
-            type="boolean"
             className="form-control"
             id="explicit"
             value={explicit}

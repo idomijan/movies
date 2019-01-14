@@ -23,9 +23,9 @@ router.get('/:id/', (req, res) => {
 });
 
 router.post('/', (req, res) => {
-  const { error } = validateMovie(req.body);
+  const {error, value} = validateMovie(req.body);
   if (error) {
-    res.status(404).send(error.details[0].message);
+    res.status(400).send(error.details[0].message);
     return;
   }
 
@@ -33,10 +33,10 @@ router.post('/', (req, res) => {
     .select()
     .from('movies')
     .insert({
-      name: req.body.name,
-      genre: req.body.genre,
-      rating: req.body.rating,
-      explicit: req.body.explicit
+      name: value.name,
+      genre: value.genre,
+      rating: value.rating,
+      explicit: value.explicit
     })
     .then(function() {
       knex
@@ -49,13 +49,23 @@ router.post('/', (req, res) => {
 });
 
 router.put('/:id', (req, res) => {
+
+  const {error, value} = validateMovie(req.body);
+  if (error) {
+    console.log(error.details[0].message);
+    res.status(400).send(error.details[0].message);
+    return;
+  }
+
   knex
     .select()
     .from('movies')
     .where('id', req.params.id)
     .update({
-      genre: req.body.genre,
-      explicit: req.body.explicit
+      name: value.name,
+      genre: value.genre,
+      rating: value.rating,
+      explicit: value.explicit
     })
     .then(function() {
       knex
